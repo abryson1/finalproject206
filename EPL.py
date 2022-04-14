@@ -48,3 +48,13 @@ get_league_info('41')
 # engagement => number of likes and comments 
 # negative / postive / neutral 
 
+def get_league_info(lea):
+    url = 'https://app.sportdataapi.com/api/v1/soccer/leagues/' + '314'? + apikey
+    response = requests.get(url)
+    data = response.text
+    contents_d = json.loads(data)
+    print(contents_d)
+
+response = requests.get('https://app.sportdataapi.com/api/v1/soccer/leagues/314', headers=headers, params=params);
+print(response.text)
+
