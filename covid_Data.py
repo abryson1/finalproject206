@@ -1,14 +1,9 @@
 from calendar import month
-import requests 
+import requests
+import re 
 import json
-import sys
-import os
-import matplotlib
-import sqlite3
-import unittest
-import csv
 import matplotlib.pyplot as plt
-import tweepy
+
 
 
 #### EPL CODE USE THIS 
@@ -27,6 +22,8 @@ def get_data(state_code):
     contents_d = json.loads(data)
     #print(contents_d.keys())
     data = contents_d['data']
+    #print(contents_d['meta'])
+    # print(contents_d['data'])
     # for i in data:
     #     #print('new')
     #     #print(i)
@@ -37,6 +34,7 @@ def get_days(state_code):
     list_of_days = []
     DICTIONARY = {}
     info = get_data(state_code)
+    #print(info)
     for i in info:
         #print(i.keys())
         list = []
@@ -46,18 +44,21 @@ def get_days(state_code):
         value = i['cases']['confirmed']['value']
         DICTIONARY[key] = value
     return DICTIONARY
+
 def get_cleaned_data(state_code): 
     days_cases = get_days(state_code) 
     days = days_cases.keys()
+    #print(days)
     has_data = {}
     no_record = []
+    regex = r'\d{4}'
     for day in days:
-        tup = (day, days_cases[day])
+        year = re.findall(regex,day)
+        #print(days_cases[day])
+        tup = (year, days_cases[day])
         if days_cases[day] == None:
             no_record.append(day)
         else:
-            year = day[0:4] 
-            #print(year)
             if year in has_data.keys():
                 has_data[year].append(tup)
             else:
@@ -65,7 +66,7 @@ def get_cleaned_data(state_code):
                 has_data[year] = []
                 has_data[year].append(tup)
     
-    #print(has_data.keys())
+    print(has_data.keys())
     return has_data
 
 def num_to_month(date):
@@ -95,11 +96,7 @@ def num_to_month(date):
     elif date == '12':
         date = 'Decemeber'
     return date
-    
-    
-
-
-
+ 
 def monthly_average(state_code):
     yearly_info = get_cleaned_data(state_code)
     average = {}
@@ -122,13 +119,6 @@ def monthly_average(state_code):
     #print(average)
     return average
 
-
-# print(get_data('CT'))
-# print(get_days('CT'))
-# print(get_cleaned_data('CT'))
-# print(monthly_average('CT'))
-
-
 def barchart_restaurant_categories(state_code):
     avg = monthly_average(state_code)
     #print(avg)
@@ -141,7 +131,7 @@ def barchart_restaurant_categories(state_code):
             # print(month_yr)
             # print(num)
             dict_num_m[month_yr] = num
-    print(dict_num_m)
+    #print(dict_num_m)
     plt.barh(list(dict_num_m.keys()), list(dict_num_m.values()))
     plt.xlabel('Number of Confirmed Caes')
     plt.ylabel('Months Recorded')
@@ -150,16 +140,15 @@ def barchart_restaurant_categories(state_code):
     plt.show()
     return dict_num_m
 
+#print(get_data('CT'))
+#print(get_data('NY'))
+# print(get_days('CT'))
+# print(get_data('NY'))
+#print(get_cleaned_data('CT'))
+# print(get_cleaned_data('CA'))
+# print(monthly_average('CT'))
+# print(barchart_restaurant_categories('CT'))
+# print(barchart_restaurant_categories('NY'))
+print(barchart_restaurant_categories('CA'))
 
-
-
-
-    # plt.barh(avg[0], avg[1])
-    # plt.xlabel('Number of Restaurants')
-    # plt.ylabel('Restaurant Categories')
-    # plt.title('Types of Restaurants on South University Ave')
-    # plt.tight_layout()
-    # plt.show()
-    # return avg
-
-print(barchart_restaurant_categories('CT'))
+# print(get_data('NY'))
