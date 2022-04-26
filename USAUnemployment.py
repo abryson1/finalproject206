@@ -1,4 +1,3 @@
-from turtle import color
 import requests
 import json
 import os
@@ -60,7 +59,7 @@ def setUpDatabase(db_name):
 
 def createUnemploymentTable(cur, conn):
     """
-    Creating Unemployment table in team database
+    Creating UnemploymentRates table in team database
     """
     cur.execute('CREATE TABLE IF NOT EXISTS UnemploymentRates (id INTEGER UNIQUE, year INTEGER, month_id INTEGER, rate INTEGER)')
     conn.commit()
@@ -195,7 +194,7 @@ def main():
     cleaned_l = sortData(response_data)
     
     # --loading API results into CSV in case reach daily limit--
-    #dataCSV(cleaned_l)
+    # UNCOMMENT TO CREATE CSV ----> dataCSV(cleaned_l)
    
     # --connecting to database--
     cur, conn = setUpDatabase("joint_data_bases.db") 
@@ -213,7 +212,7 @@ def main():
     summary_d = calcDataSummary('usblsDataSummary.csv', cur, conn)
 
     # --making visualization--
-    createDataSummaryGraph(summary_d)
+    # UNCOMMENT TO CREATE ANOTHER GRAPH ----> createDataSummaryGraph(summary_d)
 
 if __name__ == '__main__':
     main()
