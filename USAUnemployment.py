@@ -21,7 +21,7 @@ def getUnemployment():
 def sortData(responseD):
     """
     Cleaning api response data into a list of tuples in the form [(idNum, year, month, unemployment rate), ...]
-    These will eventually be the rows in database table called Unemployment
+    These will eventually be the rows in database table called UnemploymentRates
     """
     month_dict = {'January':1,'February':2,'March':3 ,'April':4,'May':5,'June':6,'July':7,'August':8,'September':9,'October':10,'November':11,'December':12}
     tup_l = []
@@ -124,6 +124,7 @@ def calcDataSummary(filename, cur, conn):
     Calculating the average, min and max monthly unemployment rate per year
     Takes in file name to write the calculations into
     Selects data from the UnemploymentRates table in DB joined with Months table for key pairs
+    Returns dict with {year: {'avg': .., 'max': .., 'min': ..}, year: {'avg': ....}, year: {}..}
     """
 
     path = os.path.abspath(os.path.dirname(__file__))
@@ -137,13 +138,15 @@ def calcDataSummary(filename, cur, conn):
     res_l = cur.fetchall()
     conn.commit()
 
-    # iterating through the select response to make a dictionary where keys = years & values = list of monthly unemployment rates
+    # iterating through the select response to make a dictionary
+    # where keys = years & values = list of monthly unemployment rates
     data_d = {}
     for year, month, rate in res_l:
         data_d[year] = data_d.get(year, [])
         data_d[year].append(rate)
 
     # iterating through the above dictionary to calculate the stats on the list of monthly rates for each year
+    # to make a dictonary where {year: {'avg': .., 'max': .., 'min': ..}, year:{}, ...}
     summary_d = {}
     with open(file_path, 'w') as file:
         writer = csv.writer(file)
