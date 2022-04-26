@@ -1,3 +1,4 @@
+from turtle import color
 import requests
 import json
 import os
@@ -176,10 +177,8 @@ def createDataSummaryGraph(data): #call this with summary_d
         y_values.append(avg_rate)
 
     x_values = list(data.keys())
-    print(x_values)
 
-
-    plt.bar(x_values, y_values, width = 0.3)
+    plt.bar(x_values, y_values, width = 0.3, color = 'green')
     plt.xticks(rotation = -90) 
     plt.grid(axis = 'y', color = 'green', linestyle = '--', linewidth = 0.3)
     plt.ylabel('Average Unemployment Rate')
