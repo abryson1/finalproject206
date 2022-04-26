@@ -162,15 +162,36 @@ def calcDataSummary(filename, cur, conn):
 
 
     return summary_d
-        
+    
+
+ ########################### visual #4 ############################
+def createDataSummaryGraph(data): #call this with summary_d
+    y_values = []
+    
+    for year in data.keys():
+        avg_rate = data[year]['avg']
+        y_values.append(avg_rate)
+
+    x_values = list(data.keys())
+    print(x_values)
+
+
+    plt.bar(x_values, y_values, width = 0.3)
+    plt.xticks(rotation = -90) 
+    plt.grid(axis = 'y', color = 'green', linestyle = '--', linewidth = 0.3)
+    plt.ylabel('Average Unemployment Rate')
+    plt.xlabel('Years')
+    plt.title('Average Unemployment Rate per Year')
+    plt.tight_layout()
+    plt.show()
 
 
 def main(): 
     ## uncomment these out, only because hit threshold on api calls 
 
     # --grabbing and cleaning data from api--
-    ##response_data = getUnemployment() 
-    ##cleaned_l = sortData(response_data)
+    response_data = getUnemployment() 
+    cleaned_l = sortData(response_data)
     
     #dataCSV(cleaned_l)
     #print(cleaned_l)
@@ -179,17 +200,20 @@ def main():
     cur, conn = setUpDatabase("joint_data_bases.db") 
     
     # --creating main table--
-    ##createUnemploymentTable(cur, conn)
+    createUnemploymentTable(cur, conn)
 
     # --creating key pair table--
     ##createMonthTable(cur, conn)
 
     
     # --adding data in 25 items at a time--
-    ##addRates(cleaned_l, cur, conn)
+    addRates(cleaned_l, cur, conn)
 
     # --checking that join statment works--
-    calcDataSummary('usblsDataSummary.csv', cur, conn)
+    summary_d = calcDataSummary('usblsDataSummary.csv', cur, conn)
+
+    # --making visualization---
+    createDataSummaryGraph(summary_d)
 
 if __name__ == '__main__':
     main()
