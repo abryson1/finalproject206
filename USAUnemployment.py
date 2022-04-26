@@ -7,14 +7,15 @@ import matplotlib.pyplot as plt
 import csv
 
 
-def getUnemployment(): #eventually add parameter for series id
-
+def getUnemployment(): 
+    """ 
+    Getting data from survey results Bureau of Labor Statistics API 
+    """
     headers = {'Content-type': 'application/json'}
     data = json.dumps({"seriesid": ['LNS14000000'],"startyear":"2012", "endyear":"2021"})
     p = requests.post('https://api.bls.gov/publicAPI/v1/timeseries/data/', data=data, headers=headers)
     json_data = json.loads(p.text)
     return json_data
-
 
 
 def sortData(responseD):
@@ -62,7 +63,6 @@ def createUnemploymentTable(cur, conn):
     """
     cur.execute('CREATE TABLE IF NOT EXISTS UnemploymentRates (id INTEGER UNIQUE, year INTEGER, month_id INTEGER, rate INTEGER)')
     conn.commit()
-    # conn.close() #Q!# why close here? can't connect later if its closed?
 
 
 def addRates(data, cur, conn):
@@ -97,7 +97,7 @@ def addRates(data, cur, conn):
                 print('Finsihed with data insertion into DB!')
 
 
-def createMonthTable(cur, conn): #Q# make sure addie didnt already make a table with this in database
+def createMonthTable(cur, conn): 
     """
     Creating table for the months and keys to reduce wordiness
     Adding months and keys into Month table
@@ -118,12 +118,17 @@ def createMonthTable(cur, conn): #Q# make sure addie didnt already make a table 
             (num_id, month))
         conn.commit()  
 
+##################### CALCULATION ############################
 def calcDataSummary(filename, cur, conn):
-    
+    """
+    Calculating the average, min and max monthly unemployment rate per year
+    Takes in file name to write the calculations into
+    Selects data from the UnemploymentRates table in DB joined with Months table for key pairs
+    """
+
     path = os.path.abspath(os.path.dirname(__file__))
     file_path = os.path.join(path, filename) 
     
-    # get all of the rows from unemployment table
     cur.execute(
     """ SELECT UnemploymentRates.year, Months.month, UnemploymentRates.rate
     FROM UnemploymentRates JOIN Months
@@ -131,15 +136,14 @@ def calcDataSummary(filename, cur, conn):
     """)
     res_l = cur.fetchall()
     conn.commit()
-    
-    # make a dictionary with each year as key, then nested dictionary as value with the average, min and max for each year 
-    # then write this into a csv file
+
+    # iterating through the select response to make a dictionary where keys = years & values = list of monthly unemployment rates
     data_d = {}
     for year, month, rate in res_l:
         data_d[year] = data_d.get(year, [])
         data_d[year].append(rate)
-    #print(data_d)
 
+    # iterating through the above dictionary to calculate the stats on the list of monthly rates for each year
     summary_d = {}
     with open(file_path, 'w') as file:
         writer = csv.writer(file)
@@ -160,11 +164,10 @@ def calcDataSummary(filename, cur, conn):
 
             summary_d[year] = year_d
 
-
     return summary_d
     
 
- ########################### visual #4 ############################
+ ########################### VISUAL 4 ############################
 def createDataSummaryGraph(data): #call this with summary_d
     y_values = []
     
@@ -187,14 +190,13 @@ def createDataSummaryGraph(data): #call this with summary_d
 
 
 def main(): 
-    ## uncomment these out, only because hit threshold on api calls 
 
     # --grabbing and cleaning data from api--
     response_data = getUnemployment() 
     cleaned_l = sortData(response_data)
     
+    # --loading API results into CSV in case reach daily limit--
     #dataCSV(cleaned_l)
-    #print(cleaned_l)
    
     # --connecting to database--
     cur, conn = setUpDatabase("joint_data_bases.db") 
@@ -203,18 +205,16 @@ def main():
     createUnemploymentTable(cur, conn)
 
     # --creating key pair table--
-    ##createMonthTable(cur, conn)
+    createMonthTable(cur, conn)
 
-    
     # --adding data in 25 items at a time--
     addRates(cleaned_l, cur, conn)
 
     # --checking that join statment works--
     summary_d = calcDataSummary('usblsDataSummary.csv', cur, conn)
 
-    # --making visualization---
+    # --making visualization--
     createDataSummaryGraph(summary_d)
 
 if __name__ == '__main__':
     main()
-
